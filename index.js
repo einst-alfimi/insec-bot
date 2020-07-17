@@ -104,12 +104,15 @@ const osuApi = new osu.Api(process.env.OSUAPIKEY, {
 /* collection db 出力 */
 outputCollectionDB = (msg, prefix) => {
     let prefixedCollection = [] //prefix対応
-    Object.keys(collections).forEach((c,i) => {
-        prefixedCollection[prefix+''+i] = collections[c];
-    })
-    console.log(prefixedCollection);
+    if (prefix) {
+        Object.keys(collections).forEach((c) => {
+            prefixedCollection[prefix+'_'+c] = collections[c];
+        })    
+    } else {
+        prefixedCollection = collections; //重そうだから追記
+    }
 
-    Osdb.writeCollectionDB('./tmp.db', collections, ()=>{
+    Osdb.writeCollectionDB('./tmp.db', prefixedCollection, ()=>{
         msg.channel.send({
             files: [{
               attachment: './tmp.db',
