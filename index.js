@@ -92,7 +92,7 @@ updateData = async function(lineArray, targetHash){
 authorize(CREDS ,(oAuth2Client) => {
     console.log('googole api authed!');
     getSheetData(RANGE);
-    await client.login(process.env.DISCORDTOKEN);
+    client.login(process.env.DISCORDTOKEN);
 });
 
 /* osuApi */
