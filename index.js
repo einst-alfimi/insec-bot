@@ -105,8 +105,11 @@ const osuApi = new osu.Api(process.env.OSUAPIKEY, {
 outputCollectionDB = (msg, prefix) => {
     let prefixedCollection = [] //prefix対応
     collections.forEach((c,i) => {
-        prefixedCollection[prefix+i] = c;
+        prefixedCollection[prefix+''+i] = c;
     })
+    console.log(collections);
+
+    console.log(prefixedCollection);
 
     Osdb.writeCollectionDB('./tmp.db', prefixedCollection, ()=>{
         msg.channel.send({
