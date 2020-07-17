@@ -130,14 +130,14 @@ client.on('message', async msg => {
     const comment = msg.content.match(urlregex)[4] ? msg.content.match(urlregex)[4].trim() : 'no comment.';
     
     osuApi.getBeatmaps({ b: mapid }).then(beatmaps => {
-        const title = `${beatmaps[0].title} [${beatmaps[0].version}]`;
+        const title = `${beatmaps[0].title} [${beatmaps[0].version}]`.replace("\"","\"\"");
         const author = `${msg.author.username}#${msg.author.discriminator}`;
         const values = [author
             , beatmaps[0].hash
             , (new Date).toString()
             , `=HYPERLINK("${url}","${title}")`
             , Math.round(beatmaps[0].difficulty.rating * 100) / 100
-            , comment
+            , `'${comment}'`
             , mapid
             , mapsetid
             , `=HYPERLINK("${ddurl}","DOWNLOAD")`
