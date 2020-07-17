@@ -25,7 +25,7 @@ const CREDS = {installed :{
 console.log('Hell O');
 
 let oAuth2Client = null;
-let collections = {};
+let collections = [];
 
 /* スプレッドシート処理 */
 function authorize(credentials, callback) {
