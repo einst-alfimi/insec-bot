@@ -102,7 +102,7 @@ const osuApi = new osu.Api(process.env.OSUAPIKEY, {
     parseNumeric: false 
 });
 /* collection db 出力 */
-outputCollectionDB = () => {
+outputCollectionDB = (msg) => {
     Osdb.writeCollectionDB('./tmp.db', collections, ()=>{
         msg.channel.send({
             files: [{
@@ -130,7 +130,7 @@ client.on('message', async msg => {
     const comment = msg.content.match(urlregex)[4] ? msg.content.match(urlregex)[4].trim() : 'no comment.';
     
     osuApi.getBeatmaps({ b: mapid }).then(beatmaps => {
-        const title = `${beatmaps[0].title} [${beatmaps[0].version}]`.replace(/"/g,"\"\"");
+        const title = `${beatmaps[0].title} [${beatmaps[0].version}]`.replace(/"/g,"\"\""); // 曲名サニタイズ
         const author = `${msg.author.username}#${msg.author.discriminator}`;
         const values = [author
             , beatmaps[0].hash
@@ -163,7 +163,7 @@ client.on('message', async msg => {
 
   if (msg.content === '!collect') {
       // osdb(collection.db形式) 出力処理
-      outputCollectionDB();
+      outputCollectionDB(msg);
   }
 })
 
