@@ -105,9 +105,11 @@ const osuApi = new osu.Api(process.env.OSUAPIKEY, {
 outputCollectionDB = (msg, prefix) => {
     let prefixedCollection = [] //prefix対応
     collections.forEach((c,i) => {
+        console.log(c);
+        console.log(i);
+
         prefixedCollection[prefix+''+i] = c;
     })
-    console.log(collections);
 
     console.log(prefixedCollection);
 
