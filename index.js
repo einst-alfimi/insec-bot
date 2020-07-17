@@ -137,7 +137,7 @@ client.on('message', async msg => {
             , (new Date).toString()
             , `=HYPERLINK("${url}","${title}")`
             , Math.round(beatmaps[0].difficulty.rating * 100) / 100
-            , `'${comment}'`
+            , `'${comment}` // 関数化対策
             , mapid
             , mapsetid
             , `=HYPERLINK("${ddurl}","DOWNLOAD")`
