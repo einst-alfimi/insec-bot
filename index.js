@@ -45,7 +45,8 @@ getSheetData = async function(){
 
     let response = await sheets.spreadsheets.values.get(param);
     if(response.data.values){
-        response.data.values.forEach((c) => {
+        response.data.values.forEach((c,i) => {
+            if (i == 0) {return;} // 1行目はスキップ
             if(!collections[c[0]]){
                 collections[c[0]] = [];    
             }
@@ -76,16 +77,28 @@ client.on('message', async msg => {
   if (urlregex.test(msg.content)) {
     console.log('is this beatmap url? '+msg.content);
     const url = msg.content.match(urlregex)[1];
+    const mapsetid = msg.content.match(urlregex)[2];
     const mapid = msg.content.match(urlregex)[3];
+    const ddurl = `https://osu.ppy.sh/d/${mapsetid}`;
+    const osudirect = `osu://b/${mapsetid}`;
     const comment = msg.content.match(urlregex)[4] ? msg.content.match(urlregex)[4].trim() : 'no comment.';
     
     osuApi.getBeatmaps({ b: mapid }).then(beatmaps => {
         const title = `${beatmaps[0].title} [${beatmaps[0].version}]`;
-        const titleCell = {"userEnteredValue": {
-                "formulaValue": `=HYPERLINK(${url},${title})`
-            }};
         const author = `${msg.author.username}#${msg.author.discriminator}`;
-        // 追加処理
+        const values = [author
+            , beatmaps[0].hash
+            , (new Date).toString()
+            , `=HYPERLINK("${url}","${title}")`
+            , Math.round(beatmaps[0].difficulty.rating * 100) / 100
+            , comment
+            , mapid
+            , mapsetid
+            , `=HYPERLINK("${ddurl}","DOWNLOAD")`
+            , `=HYPERLINK("${osudirect}","osu!direct")`
+        ]
+    
+        // 配列追加処理
         if(!collections[author]){
             collections[author] = [];
         };
@@ -105,8 +118,7 @@ client.on('message', async msg => {
                     insertDataOption : "INSERT_ROWS",
                     auth : oAuth2Client,
                     resource : {
-                        values : [[author, beatmaps[0].hash, (new Date).toString(),
-                        `=HYPERLINK("${url}","${title}")`, Math.round(beatmaps[0].difficulty.rating * 100) / 100, comment]]
+                        values : [values]
                     }
                 };
                 await sheets.spreadsheets.values.append(param);
