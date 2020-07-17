@@ -35,12 +35,12 @@ function authorize(credentials, callback) {
       oAuth2Client.setCredentials(token);
       callback(oAuth2Client);
 }
-getSheetData = async function(){
+getSheetData = async function(range){
     console.log('collections, loaded.');
     const sheets = google.sheets({version: "v4"});
     const param = {
         spreadsheetId: process.env.SPREADSHEET_ID,
-        range: RANGE,
+        range: range,
         auth : oAuth2Client
     };
 
@@ -91,8 +91,8 @@ updateData = async function(lineArray, targetHash){
 
 authorize(CREDS ,(oAuth2Client) => {
     console.log('googole api authed!');
-    getSheetData();
-    client.login(process.env.DISCORDTOKEN);
+    getSheetData(RANGE);
+    await client.login(process.env.DISCORDTOKEN);
 });
 
 /* osuApi */
@@ -102,8 +102,13 @@ const osuApi = new osu.Api(process.env.OSUAPIKEY, {
     parseNumeric: false 
 });
 /* collection db 出力 */
-outputCollectionDB = (msg) => {
-    Osdb.writeCollectionDB('./tmp.db', collections, ()=>{
+outputCollectionDB = (msg, prefix) => {
+    let prefixedCollection = [] //prefix対応
+    collections.forEach((c,i) => {
+        prefixedCollection[prefix+i] = c;
+    })
+
+    Osdb.writeCollectionDB('./tmp.db', prefixedCollection, ()=>{
         msg.channel.send({
             files: [{
               attachment: './tmp.db',
@@ -161,9 +166,13 @@ client.on('message', async msg => {
     });
   }
 
-  if (msg.content === '!collect') {
+  const collectregex = /^!collect(\s-prefix(\s.+))?/;
+  if (collectregex.test(msg.content)){
+        const pram = msg.content.match(collectregex)[2];
+        const prefix = pram ? pram.trim() : '';
+
       // osdb(collection.db形式) 出力処理
-      outputCollectionDB(msg);
+      outputCollectionDB(msg, prefix);
   }
 })
 
