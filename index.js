@@ -104,15 +104,9 @@ const osuApi = new osu.Api(process.env.OSUAPIKEY, {
 /* collection db 出力 */
 outputCollectionDB = (msg, prefix) => {
     let prefixedCollection = [] //prefix対応
-    collections.forEach((c,i) => {
-        console.log('forEach?');
-
-        console.log(c);
-        console.log(i);
-
-        prefixedCollection[prefix+''+i] = c;
+    Object.keys(collections).forEach((c,i) => {
+        prefixedCollection[prefix+''+i] = collections[c];
     })
-
     console.log(prefixedCollection);
 
     Osdb.writeCollectionDB('./tmp.db', collections, ()=>{
