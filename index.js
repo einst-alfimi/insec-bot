@@ -27,6 +27,7 @@ console.log('Hell O');
 let oAuth2Client = null;
 let collections = {};
 
+/* スプレッドシート処理 */
 function authorize(credentials, callback) {
     const {client_secret, client_id, redirect_uris} = credentials.installed;
     oAuth2Client = new google.auth.OAuth2(
@@ -55,18 +56,64 @@ getSheetData = async function(){
     }
 }
 
+appendData = async function(lineArray){
+    const sheets = google.sheets({version: "v4"});
+    const param = {
+        spreadsheetId: process.env.SPREADSHEET_ID,
+        range: RANGE, 
+        valueInputOption: "USER_ENTERED",
+        insertDataOption : "INSERT_ROWS",
+        auth : oAuth2Client,
+        resource : {
+            values : [lineArray]
+        }
+    };
+    await sheets.spreadsheets.values.append(param);
+};
+
+updateData = async function(lineArray, targetHash){
+    const sheets = google.sheets({version: "v4"});
+    collections.some((c,i) => {
+        lineArray
+    });
+    let x = 1; // TODO targetHashを更新して云々
+    const param = {
+        spreadsheetId: process.env.SPREADSHEET_ID,
+        range: `RANGEB${x}`, 
+        valueInputOption: "USER_ENTERED",
+        auth : oAuth2Client,
+        resource : {
+            values : [lineArray]
+        }
+    };
+    await sheets.spreadsheets.values.append(param);
+};
+
 authorize(CREDS ,(oAuth2Client) => {
     console.log('googole api authed!');
     getSheetData();
     client.login(process.env.DISCORDTOKEN);
 });
 
+/* osuApi */
 const osuApi = new osu.Api(process.env.OSUAPIKEY, {
     notFoundAsError: true, 
     completeScores: false, 
     parseNumeric: false 
 });
+/* collection db 出力 */
+outputCollectionDB = () => {
+    Osdb.writeCollectionDB('./tmp.db', collections, ()=>{
+        msg.channel.send({
+            files: [{
+              attachment: './tmp.db',
+              name: 'collect.db'
+            }]
+          });
+      });
+}  
 
+/* Discord api */
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
 })
@@ -80,7 +127,6 @@ client.on('message', async msg => {
     const mapsetid = msg.content.match(urlregex)[2];
     const mapid = msg.content.match(urlregex)[3];
     const ddurl = `https://osu.ppy.sh/d/${mapsetid}`;
-    const osudirect = `osu://b/${mapsetid}`;
     const comment = msg.content.match(urlregex)[4] ? msg.content.match(urlregex)[4].trim() : 'no comment.';
     
     osuApi.getBeatmaps({ b: mapid }).then(beatmaps => {
@@ -95,9 +141,8 @@ client.on('message', async msg => {
             , mapid
             , mapsetid
             , `=HYPERLINK("${ddurl}","DOWNLOAD")`
-            , `=HYPERLINK("${osudirect}","osu!direct")`
         ]
-    
+        
         // 配列追加処理
         if(!collections[author]){
             collections[author] = [];
@@ -109,35 +154,16 @@ client.on('message', async msg => {
             msg.channel.send(`author: ${author}`+'\n'
             + `map hash: ${beatmaps[0].hash}`);
             collections[author].push(beatmaps[0].hash);
-            appendData = async function(){
-                const sheets = google.sheets({version: "v4"});
-                const param = {
-                    spreadsheetId: process.env.SPREADSHEET_ID,
-                    range: RANGE, 
-                    valueInputOption: "USER_ENTERED",
-                    insertDataOption : "INSERT_ROWS",
-                    auth : oAuth2Client,
-                    resource : {
-                        values : [values]
-                    }
-                };
-                await sheets.spreadsheets.values.append(param);
-            };
-            appendData();
+            
+            appendData(values);
         }
         console.log(collections); 
     });
   }
 
   if (msg.content === '!collect') {
-      Osdb.writeCollectionDB('./tmp.db', collections, ()=>{
-        msg.channel.send({
-            files: [{
-              attachment: './tmp.db',
-              name: 'collect.db'
-            }]
-          });
-      });
+      // osdb(collection.db形式) 出力処理
+      outputCollectionDB();
   }
 })
 
