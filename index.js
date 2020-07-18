@@ -35,11 +35,11 @@ const getSheetData = async function(range){
         auth : oAuth2Client
     };
 
-    let response = await sheets.spreadsheets.values.get(param);
+    const response = await sheets.spreadsheets.values.get(param);
     if(response.data.values){
         // TODO コレクション用だけじゃなくて、全データローカルに持ったほうが小回りが効く
         response.data.values.forEach((c,i) => {
-            if (i == 0) {return;} // 1行目はスキップ
+            if (i === 0) {return;} // 1行目はスキップ
             if(!collections[c[0]]){
                 collections[c[0]] = [];    
             }
@@ -88,19 +88,18 @@ const osuApi = new osu.Api(Settings.OSUAPIKEY, {
     parseNumeric: false 
 });
 
-/* collection db 出力 */
+/* collection db 出力関数 */
 const outputCollectionDB = (channel, options = {}) => {
     let prefix = options.prefix;
-    const hasPrefix = prefix || String(prefix) === '0'; //prefixに0をつけたい稀有なオタクの対応
-    let outCollections = options.collections || collections; // イケてない
     let filename = options.filename || `collect_${new Date().toFormat("YYYYMMDDHH24MISS")}`;
-    let prefixedCollection = [];
+    let outCollections = options.collections || collections; // イケてない
+    let prefixedCollection = outCollections;
+    const hasPrefix = prefix || String(prefix) === '0'; //prefixに0をつけたい稀有なオタクの対応
     if (hasPrefix) { //prefix対応
+        prefixedCollection = [];
         Object.keys(outCollections).forEach((c) => {
             prefixedCollection[prefix+'_'+c] = outCollections[c];
         })    
-    } else {
-        prefixedCollection = outCollections; //重そうだから追記
     }
 
     // 書き込み対応 callbackでファイル送信

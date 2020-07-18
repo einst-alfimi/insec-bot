@@ -1,6 +1,6 @@
 class Settings {
     constructor(){
-        this.isSatisfied(); 
+        this.isSatisfied(); // ENVにデータがあるか確認、なければ強制終了
         this.token = {"access_token":process.env.ACCESS_TOKEN,
         "refresh_token":process.env.REFRESH_TOKEN,
         "scope":"https://www.googleapis.com/auth/spreadsheets",
@@ -24,8 +24,7 @@ class Settings {
      * envコケたら、processが死
      */
     isSatisfied(){
-        //spreadsheet 
-        if (
+        if ( //spreadsheet 
             process.env.ACCESS_TOKEN === undefined ||
             process.env.REFRESH_TOKEN === undefined ||
             process.env.EXPIRY_DATE === undefined ||
@@ -37,15 +36,13 @@ class Settings {
             console.error('env was missing : GoogleAPI...');
             process.exit(6);
         }
-        // discord token 
-        if (
+        if ( // discord token 
             process.env.DISCORDTOKEN === undefined
         ) {
             console.error('env was missing : Discord TOKEN...');
             process.exit(7);
         }
-        // osu api key 
-        if (
+        if ( // osu api key 
             process.env.OSUAPIKEY === undefined
         ) {
             console.error('env was missing : Osu! API Key...');
