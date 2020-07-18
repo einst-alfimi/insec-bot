@@ -5,6 +5,9 @@ const client = new Discord.Client();
 const {google} = require('googleapis');
 require('dotenv').config();
 
+console.log('Hell O');
+// TODO 初期処理 env設定してないときは死ぬようにしておく
+
 const token = {"access_token":process.env.ACCESS_TOKEN,
               "refresh_token":process.env.REFRESH_TOKEN,
               "scope":"https://www.googleapis.com/auth/spreadsheets",
@@ -21,8 +24,6 @@ const CREDS = {installed :{
     "client_secret":process.env.CLIENT_SECRET,
     "redirect_uris":["urn:ietf:wg:oauth:2.0:oob","http://localhost"]
 }}
-
-console.log('Hell O');
 
 let oAuth2Client = null;
 let collections = [];
@@ -46,6 +47,7 @@ getSheetData = async function(range){
 
     let response = await sheets.spreadsheets.values.get(param);
     if(response.data.values){
+        // TODO コレクション用だけじゃなくて、全データローカルに持ったほうが小回りが効く
         response.data.values.forEach((c,i) => {
             if (i == 0) {return;} // 1行目はスキップ
             if(!collections[c[0]]){
@@ -102,18 +104,19 @@ const osuApi = new osu.Api(process.env.OSUAPIKEY, {
     parseNumeric: false 
 });
 /* collection db 出力 */
-outputCollectionDB = (msg, prefix) => {
+outputCollectionDB = (channel, prefix, outCollections) => {
+    outCollections = outCollections ? outCollections : collections;
     let prefixedCollection = [] //prefix対応
     if (prefix) {
-        Object.keys(collections).forEach((c) => {
-            prefixedCollection[prefix+'_'+c] = collections[c];
+        Object.keys(outCollections).forEach((c) => {
+            prefixedCollection[prefix+'_'+c] = outCollections[c];
         })    
     } else {
-        prefixedCollection = collections; //重そうだから追記
+        prefixedCollection = outCollections; //重そうだから追記
     }
 
     Osdb.writeCollectionDB('./tmp.db', prefixedCollection, ()=>{
-        msg.channel.send({
+        channel.send({
             files: [{
               attachment: './tmp.db',
               name: 'collect.db'
@@ -170,14 +173,39 @@ client.on('message', async msg => {
     });
   }
 
+  // DB出力
   const collectregex = /^!collect(\s-prefix(\s.+))?/;
   if (collectregex.test(msg.content)){
-        const pram = msg.content.match(collectregex)[2];
-        const prefix = pram ? pram.trim() : '';
+        const param = msg.content.match(collectregex)[2];
+        const prefix = param ? param.trim() : '';
 
       // osdb(collection.db形式) 出力処理
-      outputCollectionDB(msg, prefix);
+      outputCollectionDB(msg.channel, prefix);
   }
+  // matchDB出力
+  // https://osu.ppy.sh/community/matches/64243509
+  const matchregex = /^!match\s(https:\/\/osu\.ppy\.sh\/community\/matches\/(\d+))?/;
+  if (matchregex.test(msg.content)){
+    const matchid = msg.content.match(collectregex)[2];
+    osuApi.getMatch({ mp: matchid }).then(match => {
+        if(!match){
+            return;
+        }
+        let matchDB = [];
+        let collectionName = `ZZ ${match.raw_start}: ${match.name}`;
+        matchDB[collectionName] = []
+        match.games.forEach((c)=>{
+            osuApi.getBeatmaps({ b: c.beatmapId }).then(beatmaps => {
+                if(!beatmaps){return;} // Not Uploaded対応
+                matchDB[collectionName].push(beatmaps[0].id);
+            });
+        })
+        console.log(match.games);
+        console.log(matchDB);
+        outputCollectionDB(msg.channel, null, matchDB);
+    });
+  }
+
 })
 
 
