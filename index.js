@@ -4,6 +4,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const {google} = require('googleapis');
 require('dotenv').config();
+require('date-utils');
 
 console.log('Hell O');
 // TODO 初期処理 env設定してないときは死ぬようにしておく
@@ -103,9 +104,13 @@ const osuApi = new osu.Api(process.env.OSUAPIKEY, {
     completeScores: false, 
     parseNumeric: false 
 });
+
 /* collection db 出力 */
-outputCollectionDB = (channel, prefix, outCollections) => {
-    outCollections = outCollections ? outCollections : collections;
+outputCollectionDB = (channel, options) => {
+    let prefix = options.prefix;
+    let outCollections = options.collections ? options.collections : collections;
+    let filename = options.filename ? options.filename
+                 : `collect_${new Date().toFormat("YYYYMMDDHH24MISS")}`;
     let prefixedCollection = [] //prefix対応
     if (prefix) {
         Object.keys(outCollections).forEach((c) => {
@@ -119,7 +124,7 @@ outputCollectionDB = (channel, prefix, outCollections) => {
         channel.send({
             files: [{
               attachment: './tmp.db',
-              name: 'collect.db'
+              name: `${filename}.db`
             }]
           });
       });
@@ -180,7 +185,10 @@ client.on('message', async msg => {
         const prefix = param ? param.trim() : '';
 
       // osdb(collection.db形式) 出力処理
-      outputCollectionDB(msg.channel, prefix);
+      const options = {
+          prefix: prefix
+      };
+      outputCollectionDB(msg.channel, options);
   }
   // matchDB出力
   // https://osu.ppy.sh/community/matches/64243509
@@ -190,7 +198,7 @@ client.on('message', async msg => {
     osuApi.getMatch({ mp: matchid }).then(match => {
         if(!match){return;}
         let matchDB = [];
-        let collectionName = `ZZ ${match.raw_start}: ${match.name}`;
+        let collectionName = `ZZ ${match.raw_start}: ${match.name} (${matchid})`;
         matchDB[collectionName] = []
         const stack = [];
         match.games.forEach((c)=>{
@@ -201,7 +209,11 @@ client.on('message', async msg => {
                 if(!beatmaps){return;} // Not Uploaded対応
                 matchDB[collectionName].push(beatmaps[0].hash);
             })
-            outputCollectionDB(msg.channel, '', matchDB);
+            const options = {
+                collections: matchDB,
+                filename: `match_${matchid}_${new Date().toFormat("YYYYMMDDHH24MISS")}`
+            }
+            outputCollectionDB(msg.channel, options);
         });
     });
   }
