@@ -9,10 +9,7 @@ const Settings = require('./settings');
 require('dotenv').config();
 require('date-utils');
 
-console.log('Hell O');
-
 const RANGE = 'music'; // TODO 可変にするかどうか迷う
-
 let oAuth2Client = null;
 let collections = [];
 
@@ -98,7 +95,6 @@ const outputCollectionDB = (channel, options = {}) => {
             prefixedCollection[prefix+'_'+c] = outCollections[c];
         })    
     }
-
     // 書き込み対応 callbackでファイル送信
     Osdb.writeCollectionDB('./tmp.db', prefixedCollection, ()=>{
         channel.send({files: [{attachment: './tmp.db', name: `${filename}.db`}]});
@@ -142,8 +138,7 @@ client.on('message', async msg => {
             if(collections[author].some((hash) => beatmaps[0].hash === hash)){
                 msg.channel.send('already added');
             } else {
-                msg.channel.send(`author: ${author}`+'\n'
-                + `map hash: ${beatmaps[0].hash}`);
+                msg.channel.send(`author: ${author}\nmap hash: ${beatmaps[0].hash}`);
                 collections[author].push(beatmaps[0].hash);
                 appendData(values);
             }
@@ -193,6 +188,7 @@ client.on('message', async msg => {
 })
 
 /** main処理 */
+console.log('Hello. (^o^)/');
 authorize(Settings.credentials ,(oAuth2Client) => {
     console.log('googole api authed!');
     getSheetData(RANGE);
