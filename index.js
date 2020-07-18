@@ -199,7 +199,7 @@ client.on('message', async msg => {
         Promise.all(stack).then((bm)=> {
             bm.forEach((beatmaps)=>{
                 if(!beatmaps){return;} // Not Uploaded対応
-                matchDB[collectionName].push(beatmaps[0].id);
+                matchDB[collectionName].push(beatmaps[0].hash);
             })
             outputCollectionDB(msg.channel, '', matchDB);
         });
