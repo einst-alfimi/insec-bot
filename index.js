@@ -114,7 +114,7 @@ const outputCollectionDB = (channel, options = {}) => {
     let outCollections = options.collections || collections;
     let filename = options.filename || `collect_${new Date().toFormat("YYYYMMDDHH24MISS")}`;
     let prefixedCollection = [] //prefix対応
-    if (prefix || prefix == 0) { //prefixに0をつけたい稀有なオタクの対応
+    if (prefix || Number(prefix) === 0) { //prefixに0をつけたい稀有なオタクの対応
         Object.keys(outCollections).forEach((c) => {
             prefixedCollection[prefix+'_'+c] = outCollections[c];
         })    
