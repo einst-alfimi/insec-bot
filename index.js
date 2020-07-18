@@ -112,17 +112,18 @@ client.on('message', async msg => {
         const mapsetid = msg.content.match(urlregex)[2];
         const mapid = msg.content.match(urlregex)[3];
         const ddurl = `https://osu.ppy.sh/d/${mapsetid}`;
-        const comment = msg.content.match(urlregex)[4] || 'no comment.';
+        const comment = msg.content.match(urlregex)[4] && msg.content.match(urlregex)[4].trim() || '(no comment.)';
     
+        // TODO 実質波動拳なので外出しするかも
         osuApi.getBeatmaps({ b: mapid }).then(beatmaps => {
             const title = `${beatmaps[0].title} [${beatmaps[0].version}]`.replace(/"/g,"\"\""); // 曲名サニタイズ
             const author = `${msg.author.username}#${msg.author.discriminator}`;
             const values = [author
                 , beatmaps[0].hash
-                , (new Date).toString()
+                , (new Date).toString() //date-utilsあるからformatしてもいい
                 , `=HYPERLINK("${url}","${title}")`
                 , Math.round(beatmaps[0].difficulty.rating * 100) / 100
-                , `'${comment.trim()}` // 関数化対策
+                , `'${comment}` // 関数化対策にクオート挿入
                 , mapid
                 , mapsetid
                 , `=HYPERLINK("${ddurl}","DOWNLOAD")`
