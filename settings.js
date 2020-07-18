@@ -1,5 +1,3 @@
-module.exports = new Settings();
-
 class Settings {
     constructor(){
         this.isSatisfied(); 
@@ -55,3 +53,5 @@ class Settings {
         }
     }
 }
+
+module.exports = new Settings();
