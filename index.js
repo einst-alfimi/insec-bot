@@ -186,7 +186,7 @@ client.on('message', async msg => {
   // https://osu.ppy.sh/community/matches/64243509
   const matchregex = /^!match\s(https:\/\/osu\.ppy\.sh\/community\/matches\/(\d+))?/;
   if (matchregex.test(msg.content)){
-    const matchid = msg.content.match(collectregex)[2];
+    const matchid = msg.content.match(matchregex)[2];
     osuApi.getMatch({ mp: matchid }).then(match => {
         if(!match){
             return;
@@ -195,14 +195,14 @@ client.on('message', async msg => {
         let collectionName = `ZZ ${match.raw_start}: ${match.name}`;
         matchDB[collectionName] = []
         match.games.forEach((c)=>{
-            osuApi.getBeatmaps({ b: c.beatmapId }).then(beatmaps => {
+            await osuApi.getBeatmaps({ b: c.beatmapId }).then(beatmaps => {
                 if(!beatmaps){return;} // Not Uploaded対応
                 matchDB[collectionName].push(beatmaps[0].id);
             });
         })
         console.log(match.games);
         console.log(matchDB);
-        outputCollectionDB(msg.channel, null, matchDB);
+        outputCollectionDB(msg.channel, '', matchDB);
     });
   }
 
