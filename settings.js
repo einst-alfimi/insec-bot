@@ -48,7 +48,7 @@ class Settings {
         if (
             process.env.OSUAPIKEY === undefined
         ) {
-            console.error('env was missing : Discord Osu! API Key...');
+            console.error('env was missing : Osu! API Key...');
             process.exit(8);
         }
     }
