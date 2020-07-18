@@ -11,9 +11,7 @@ require('date-utils');
 
 console.log('Hell O');
 
-const token = Settings.token;
 const RANGE = 'music'; // TODO 可変にするかどうか迷う
-const CREDS = Settings.credentials;
 
 let oAuth2Client = null;
 let collections = [];
@@ -23,7 +21,7 @@ const authorize = (credentials, callback) => {
     const {client_secret, client_id, redirect_uris} = credentials.installed;
     oAuth2Client = new google.auth.OAuth2(
         client_id, client_secret, redirect_uris[0]);  
-    oAuth2Client.setCredentials(token);
+    oAuth2Client.setCredentials(Settings.token);
     callback(oAuth2Client);
 };
 const getSheetData = async function(range){
@@ -36,16 +34,15 @@ const getSheetData = async function(range){
     };
 
     const response = await sheets.spreadsheets.values.get(param);
-    if(response.data.values){
-        // TODO コレクション用だけじゃなくて、全データローカルに持ったほうが小回りが効く
-        response.data.values.forEach((c,i) => {
-            if (i === 0) {return;} // 1行目はスキップ
-            if(!collections[c[0]]){
-                collections[c[0]] = [];    
-            }
-            collections[c[0]].push(c[1]);
-        });
-    }
+    if(!response.data.values){return;}
+    // TODO コレクション用だけじゃなくて、全データローカルに持ったほうが小回りが効く
+    response.data.values.forEach((c,i) => {
+        if (i === 0) {return;} // 1行目はスキップ
+        if(!collections[c[0]]){
+            collections[c[0]] = [];    
+        }
+        collections[c[0]].push(c[1]);
+    });
 }
 
 const appendData = async function(lineArray){
@@ -196,7 +193,7 @@ client.on('message', async msg => {
 })
 
 /** main処理 */
-authorize(CREDS ,(oAuth2Client) => {
+authorize(Settings.credentials ,(oAuth2Client) => {
     console.log('googole api authed!');
     getSheetData(RANGE);
     client.login(Settings.DISCORDTOKEN);
