@@ -3,6 +3,8 @@ const osu = require('node-osu');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const {google} = require('googleapis');
+const util = require('util');
+
 require('dotenv').config();
 require('date-utils');
 
@@ -30,14 +32,14 @@ let oAuth2Client = null;
 let collections = [];
 
 /* スプレッドシート処理 */
-function authorize(credentials, callback) {
+const authorize = (credentials, callback) => {
     const {client_secret, client_id, redirect_uris} = credentials.installed;
     oAuth2Client = new google.auth.OAuth2(
         client_id, client_secret, redirect_uris[0]);  
       oAuth2Client.setCredentials(token);
       callback(oAuth2Client);
 }
-getSheetData = async function(range){
+const getSheetData = async function(range){
     console.log('collections, loaded.');
     const sheets = google.sheets({version: "v4"});
     const param = {
@@ -59,7 +61,7 @@ getSheetData = async function(range){
     }
 }
 
-appendData = async function(lineArray){
+const appendData = async function(lineArray){
     const sheets = google.sheets({version: "v4"});
     const param = {
         spreadsheetId: process.env.SPREADSHEET_ID,
@@ -74,12 +76,12 @@ appendData = async function(lineArray){
     await sheets.spreadsheets.values.append(param);
 };
 
-updateData = async function(lineArray, targetHash){
+const updateData = async function(lineArray, targetHash){
     const sheets = google.sheets({version: "v4"});
     collections.some((c,i) => {
         lineArray
     });
-    let x = 1; // TODO targetHashを更新して云々
+    let x = 1; // TODO targetHashを更新して云々 作ってない
     const param = {
         spreadsheetId: process.env.SPREADSHEET_ID,
         range: `RANGEB${x}`, 
@@ -92,6 +94,7 @@ updateData = async function(lineArray, targetHash){
     await sheets.spreadsheets.values.append(param);
 };
 
+/** Googleapi認証 */
 authorize(CREDS ,(oAuth2Client) => {
     console.log('googole api authed!');
     getSheetData(RANGE);
@@ -106,13 +109,12 @@ const osuApi = new osu.Api(process.env.OSUAPIKEY, {
 });
 
 /* collection db 出力 */
-outputCollectionDB = (channel, options) => {
+const outputCollectionDB = (channel, options = {}) => {
     let prefix = options.prefix;
-    let outCollections = options.collections ? options.collections : collections;
-    let filename = options.filename ? options.filename
-                 : `collect_${new Date().toFormat("YYYYMMDDHH24MISS")}`;
+    let outCollections = options.collections || collections;
+    let filename = options.filename || `collect_${new Date().toFormat("YYYYMMDDHH24MISS")}`;
     let prefixedCollection = [] //prefix対応
-    if (prefix) {
+    if (prefix || prefix == 0) { //prefixに0をつけたい稀有なオタクの対応
         Object.keys(outCollections).forEach((c) => {
             prefixedCollection[prefix+'_'+c] = outCollections[c];
         })    
@@ -144,7 +146,7 @@ client.on('message', async msg => {
     const mapsetid = msg.content.match(urlregex)[2];
     const mapid = msg.content.match(urlregex)[3];
     const ddurl = `https://osu.ppy.sh/d/${mapsetid}`;
-    const comment = msg.content.match(urlregex)[4] ? msg.content.match(urlregex)[4].trim() : 'no comment.';
+    const comment = msg.content.match(urlregex)[4] || 'no comment.';
     
     osuApi.getBeatmaps({ b: mapid }).then(beatmaps => {
         const title = `${beatmaps[0].title} [${beatmaps[0].version}]`.replace(/"/g,"\"\""); // 曲名サニタイズ
@@ -154,7 +156,7 @@ client.on('message', async msg => {
             , (new Date).toString()
             , `=HYPERLINK("${url}","${title}")`
             , Math.round(beatmaps[0].difficulty.rating * 100) / 100
-            , `'${comment}` // 関数化対策
+            , `'${comment.trim()}` // 関数化対策
             , mapid
             , mapsetid
             , `=HYPERLINK("${ddurl}","DOWNLOAD")`
@@ -176,6 +178,7 @@ client.on('message', async msg => {
         }
         console.log(collections); 
     });
+    return;
   }
 
   // DB出力
@@ -189,6 +192,7 @@ client.on('message', async msg => {
           prefix: prefix
       };
       outputCollectionDB(msg.channel, options);
+      return;
   }
   // matchDB出力
   // https://osu.ppy.sh/community/matches/64243509
@@ -216,10 +220,7 @@ client.on('message', async msg => {
             outputCollectionDB(msg.channel, options);
         });
     });
+    return;
   }
-
 })
-
-
-
 
