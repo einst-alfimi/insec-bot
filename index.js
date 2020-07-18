@@ -188,21 +188,21 @@ client.on('message', async msg => {
   if (matchregex.test(msg.content)){
     const matchid = msg.content.match(matchregex)[2];
     osuApi.getMatch({ mp: matchid }).then(match => {
-        if(!match){
-            return;
-        }
+        if(!match){return;}
         let matchDB = [];
         let collectionName = `ZZ ${match.raw_start}: ${match.name}`;
         matchDB[collectionName] = []
+        const stack = [];
         match.games.forEach((c)=>{
-            osuApi.getBeatmaps({ b: c.beatmapId }).then(beatmaps => {
+            stack.push(osuApi.getBeatmaps({ b: c.beatmapId }));
+        })
+        Promise.all(stack).then((bm)=> {
+            bm.forEach((beatmaps)=>{
                 if(!beatmaps){return;} // Not Uploaded対応
                 matchDB[collectionName].push(beatmaps[0].id);
-            });
-        })
-        console.log(match.games);
-        console.log(matchDB);
-        outputCollectionDB(msg.channel, '', matchDB);
+            })
+            outputCollectionDB(msg.channel, '', matchDB);
+        });
     });
   }
 
