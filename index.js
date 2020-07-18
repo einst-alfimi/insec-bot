@@ -195,7 +195,7 @@ client.on('message', async msg => {
         let collectionName = `ZZ ${match.raw_start}: ${match.name}`;
         matchDB[collectionName] = []
         match.games.forEach((c)=>{
-            await osuApi.getBeatmaps({ b: c.beatmapId }).then(beatmaps => {
+            osuApi.getBeatmaps({ b: c.beatmapId }).then(beatmaps => {
                 if(!beatmaps){return;} // Not Uploaded対応
                 matchDB[collectionName].push(beatmaps[0].id);
             });
