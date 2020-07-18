@@ -111,10 +111,11 @@ const osuApi = new osu.Api(process.env.OSUAPIKEY, {
 /* collection db 出力 */
 const outputCollectionDB = (channel, options = {}) => {
     let prefix = options.prefix;
-    let outCollections = options.collections || collections;
+    const hasPrefix = prefix || String(prefix) === '0'; //prefixに0をつけたい稀有なオタクの対応
+    let outCollections = options.collections || collections; // イケてない
     let filename = options.filename || `collect_${new Date().toFormat("YYYYMMDDHH24MISS")}`;
-    let prefixedCollection = [] //prefix対応
-    if (prefix || String(prefix) === '0') { //prefixに0をつけたい稀有なオタクの対応
+    let prefixedCollection = [] 
+    if (hasPrefix) { //prefix対応
         Object.keys(outCollections).forEach((c) => {
             prefixedCollection[prefix+'_'+c] = outCollections[c];
         })    
@@ -122,6 +123,7 @@ const outputCollectionDB = (channel, options = {}) => {
         prefixedCollection = outCollections; //重そうだから追記
     }
 
+    // 書き込み対応 callbackでファイル送信
     Osdb.writeCollectionDB('./tmp.db', prefixedCollection, ()=>{
         channel.send({
             files: [{
@@ -185,7 +187,7 @@ client.on('message', async msg => {
   const collectregex = /^!collect(\s-prefix(\s.+))?/;
   if (collectregex.test(msg.content)){
         const param = msg.content.match(collectregex)[2];
-        const prefix = param ? param.trim() : '';
+        const prefix = param === undefined ? '' : param.trim();
 
       // osdb(collection.db形式) 出力処理
       const options = {
@@ -195,7 +197,6 @@ client.on('message', async msg => {
       return;
   }
   // matchDB出力
-  // https://osu.ppy.sh/community/matches/64243509
   const matchregex = /^!match\s(https:\/\/osu\.ppy\.sh\/community\/matches\/(\d+))?/;
   if (matchregex.test(msg.content)){
     const matchid = msg.content.match(matchregex)[2];
@@ -208,9 +209,9 @@ client.on('message', async msg => {
         match.games.forEach((c)=>{
             stack.push(osuApi.getBeatmaps({ b: c.beatmapId }));
         })
-        Promise.all(stack).then((bm)=> {
-            bm.forEach((beatmaps)=>{
-                if(!beatmaps){return;} // Not Uploaded対応
+        Promise.all(stack).then((bmArray)=> {
+            bmArray.forEach((beatmaps)=>{
+                if(!beatmaps){return;} // Not Uploaded対応 そんな譜面をプレイするな
                 matchDB[collectionName].push(beatmaps[0].hash);
             })
             const options = {
