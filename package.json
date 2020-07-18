@@ -15,7 +15,6 @@
     "dotenv": "^8.2.0",
     "googleapis": "^39.2.0",
     "node-osu": "^2.2.0",
-    "nodesu": "^0.7.2",
     "osudb": "^2.0.0"
   }
 }

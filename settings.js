@@ -1,3 +1,5 @@
+require('dotenv').config(); // for local .env
+
 class Settings {
     constructor(){
         this.isSatisfied(); // ENVにデータがあるか確認、なければ強制終了

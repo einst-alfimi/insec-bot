@@ -5,8 +5,6 @@ const client = new Discord.Client();
 const {google} = require('googleapis');
 const util = require('util');
 const Settings = require('./settings');
-
-require('dotenv').config();
 require('date-utils');
 
 const RANGE = 'music'; // TODO 可変にするかどうか迷う
