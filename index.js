@@ -4,29 +4,16 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const {google} = require('googleapis');
 const util = require('util');
+const Settings = require('./settings');
 
 require('dotenv').config();
 require('date-utils');
 
 console.log('Hell O');
-// TODO 初期処理 env設定してないときは死ぬようにしておく
 
-const token = {"access_token":process.env.ACCESS_TOKEN,
-              "refresh_token":process.env.REFRESH_TOKEN,
-              "scope":"https://www.googleapis.com/auth/spreadsheets",
-              "token_type":"Bearer",
-              "expiry_date":process.env.EXPIRY_DATE}
-
-const RANGE = 'music'
-const CREDS = {installed :{
-    "client_id":process.env.CLIENT_ID,
-    "project_id":process.env.PROJECT_ID,
-    "auth_uri":"https://accounts.google.com/o/oauth2/auth",
-    "token_uri":"https://oauth2.googleapis.com/token",
-    "auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs",
-    "client_secret":process.env.CLIENT_SECRET,
-    "redirect_uris":["urn:ietf:wg:oauth:2.0:oob","http://localhost"]
-}}
+const token = Settings.token;
+const RANGE = 'music'; // TODO 可変にするかどうか迷う
+const CREDS = Settings.credentials;
 
 let oAuth2Client = null;
 let collections = [];
@@ -36,14 +23,14 @@ const authorize = (credentials, callback) => {
     const {client_secret, client_id, redirect_uris} = credentials.installed;
     oAuth2Client = new google.auth.OAuth2(
         client_id, client_secret, redirect_uris[0]);  
-      oAuth2Client.setCredentials(token);
-      callback(oAuth2Client);
+        oAuth2Client.setCredentials(token);
+        callback(oAuth2Client);
 }
 const getSheetData = async function(range){
     console.log('collections, loaded.');
     const sheets = google.sheets({version: "v4"});
     const param = {
-        spreadsheetId: process.env.SPREADSHEET_ID,
+        spreadsheetId: Settings.SPREADSHEET_ID,
         range: range,
         auth : oAuth2Client
     };
@@ -64,7 +51,7 @@ const getSheetData = async function(range){
 const appendData = async function(lineArray){
     const sheets = google.sheets({version: "v4"});
     const param = {
-        spreadsheetId: process.env.SPREADSHEET_ID,
+        spreadsheetId: Settings.SPREADSHEET_ID,
         range: RANGE, 
         valueInputOption: "USER_ENTERED",
         insertDataOption : "INSERT_ROWS",
@@ -83,7 +70,7 @@ const updateData = async function(lineArray, targetHash){
     });
     let x = 1; // TODO targetHashを更新して云々 作ってない
     const param = {
-        spreadsheetId: process.env.SPREADSHEET_ID,
+        spreadsheetId: Settings.SPREADSHEET_ID,
         range: `RANGEB${x}`, 
         valueInputOption: "USER_ENTERED",
         auth : oAuth2Client,
@@ -98,11 +85,11 @@ const updateData = async function(lineArray, targetHash){
 authorize(CREDS ,(oAuth2Client) => {
     console.log('googole api authed!');
     getSheetData(RANGE);
-    client.login(process.env.DISCORDTOKEN);
+    client.login(Settings.DISCORDTOKEN);
 });
 
 /* osuApi */
-const osuApi = new osu.Api(process.env.OSUAPIKEY, {
+const osuApi = new osu.Api(Settings.OSUAPIKEY, {
     notFoundAsError: true, 
     completeScores: false, 
     parseNumeric: false 
@@ -136,7 +123,7 @@ const outputCollectionDB = (channel, options = {}) => {
 
 /* Discord api */
 client.on('ready', () => {
-  console.log(`Logged in as ${client.user.tag}!`);
+    console.log(`Logged in as ${client.user.tag}!`);
 })
 
 client.on('message', async msg => {
