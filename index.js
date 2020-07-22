@@ -118,6 +118,7 @@ client.on('message', async msg => {
         osuApi.getBeatmaps({ b: mapid }).then(beatmaps => {
             const title = `${beatmaps[0].title} [${beatmaps[0].version}]`.replace(/"/g,"\"\""); // 曲名サニタイズ
             const author = `${msg.author.username}#${msg.author.discriminator}`;
+            const status = beatmaps[0].approvalStatus;
             const values = [author
                 , beatmaps[0].hash
                 , (new Date).toString() //date-utilsあるからformatしてもいい
@@ -126,6 +127,7 @@ client.on('message', async msg => {
                 , `'${comment}` // 関数化対策にクオート挿入
                 , mapid
                 , mapsetid
+                , status
                 , `=HYPERLINK("${ddurl}","DOWNLOAD")`
             ];
             
