@@ -197,6 +197,7 @@ client.on('message', async msg => {
         Promise.all(stack).then((bmArray)=> {
             bmArray.forEach((beatmaps)=>{
                 const status = beatmaps[0].approvalStatus;
+                const mapsetid = beatmaps[0].beatmapSetId;
                 const values = [null
                     , null
                     , null
