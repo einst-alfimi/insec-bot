@@ -70,7 +70,7 @@ const updateData = async function(valueArray){
     const sheets = google.sheets({version: "v4"});
     const param = {
         spreadsheetId: Settings.SPREADSHEET_ID,
-        range: `RANGEA2`, 
+        range: `${RANGE}A2`, 
         valueInputOption: "USER_ENTERED",
         auth : oAuth2Client,
         resource : {
