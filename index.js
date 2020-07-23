@@ -10,6 +10,7 @@ require('date-utils');
 const RANGE = 'music'; // TODO 可変にするかどうか迷う
 let oAuth2Client = null;
 let collections = [];
+let sheetBackup = null;
 
 /* スプレッドシート処理 */
 const authorize = (credentials, callback) => {
@@ -31,6 +32,7 @@ const getSheetData = async function(range){
     const response = await sheets.spreadsheets.values.get(param);
     if(!response.data.values){return;}
     // TODO コレクション用だけじゃなくて、全データローカルに持ったほうが小回りが効く
+    sheetBackup = response.data.values;
     response.data.values.forEach((c,i) => {
         if (i === 0) {return;} // 1行目はスキップ
         if(!collections[c[0]]){
@@ -55,22 +57,18 @@ const appendData = async function(lineArray){
     await sheets.spreadsheets.values.append(param);
 };
 
-const updateData = async function(lineArray, targetHash){
+const updateData = async function(valueArray){
     const sheets = google.sheets({version: "v4"});
-    collections.some((c,i) => {
-        lineArray
-    });
-    let x = 1; // TODO targetHashを更新して云々 作ってない
     const param = {
         spreadsheetId: Settings.SPREADSHEET_ID,
-        range: `RANGEB${x}`, 
+        range: `RANGEA2`, 
         valueInputOption: "USER_ENTERED",
         auth : oAuth2Client,
         resource : {
-            values : [lineArray]
+            values : valueArray
         }
     };
-    await sheets.spreadsheets.values.append(param);
+    await sheets.spreadsheets.values.update(param);
 };
 
 /* osuApi */
@@ -185,7 +183,37 @@ client.on('message', async msg => {
             });
         });
         return;
-    }
+    };
+    const updateregex = /^!update/;
+    if (updateregex.test(msg.content)){
+        await getSheetData(RANGE); // 再更新
+        const stack = [];
+        
+        sheetBackup.forEach((c,i)=>{
+            // if(i===0){return;};
+            stack.push(osuApi.getBeatmaps({ b: c[6] }));
+        })
+        let updateValArray = [];
+        Promise.all(stack).then((bmArray)=> {
+            bmArray.forEach((beatmaps)=>{
+                const status = beatmaps[0].approvalStatus;
+                const values = [null
+                    , null
+                    , null
+                    , null
+                    , null
+                    , null
+                    , null
+                    , mapsetid
+                    , status
+                    , `=HYPERLINK("${ddurl}","DOWNLOAD")`
+                ];
+                updateValArray.push(values);
+            })
+        });
+        updateData(updateValArray);
+    };
+
 })
 
 /** main処理 */
@@ -193,6 +221,6 @@ console.log('Hello. (^o^)/');
 authorize(Settings.credentials ,(oAuth2Client) => {
     console.log('googole api authed!');
     getSheetData(RANGE);
-    client.login(Settings.DISCORDTOKEN);
+    client.login(Settings.DISCORDTOKEN); 
 });
 
