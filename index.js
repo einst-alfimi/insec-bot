@@ -213,6 +213,7 @@ client.on('message', async msg => {
                 }
                 const status = beatmaps[0].approvalStatus;
                 const mapsetid = beatmaps[0].beatmapSetId;
+                const ddurl = `https://osu.ppy.sh/d/${mapsetid}`;
                 const values = [null
                     , null
                     , null
