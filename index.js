@@ -200,7 +200,7 @@ client.on('message', async msg => {
         const stack = [];
         
         sheetBackup.forEach((c,i)=>{
-            // if(i===0){return;};
+            if(i===0){return;};
             stack.push(osuApi.getBeatmaps({ b: c[6] }));
         })
         let updateValArray = [];
