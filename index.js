@@ -209,7 +209,11 @@ client.on('message', async msg => {
         let updateValArray = [];
         Promise.all(stack).then((bmArray)=> {
             bmArray.forEach((beatmaps)=>{
-                if(beatmaps == 'error') {return;}
+                if(beatmaps == 'error') {
+                    updateValArray.push([]);
+                    console.log('error occured. ');
+                    return;
+                }
                 const status = beatmaps[0].approvalStatus;
                 const mapsetid = beatmaps[0].beatmapSetId;
                 const values = [null
