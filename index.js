@@ -12,6 +12,15 @@ let oAuth2Client = null;
 let collections = [];
 let sheetBackup = null;
 
+// API遅延
+const sleep = (time) => {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve();
+        }, time);
+    });
+}
+
 /* スプレッドシート処理 */
 const authorize = (credentials, callback) => {
     const {client_secret, client_id, redirect_uris} = credentials.installed;
@@ -186,16 +195,21 @@ client.on('message', async msg => {
     };
     const updateregex = /^!update/;
     if (updateregex.test(msg.content)){
+        msg.channel.send('update start');
+
         await getSheetData(RANGE); // 再更新
         const stack = [];
         
         sheetBackup.forEach((c,i)=>{
             // if(i===0){return;};
-            stack.push(osuApi.getBeatmaps({ b: c[6] }));
+            sleep(500).then(()=>{
+                stack.push(osuApi.getBeatmaps({ b: c[6] }).catch(error=>'error'));
+            })
         })
         let updateValArray = [];
         Promise.all(stack).then((bmArray)=> {
             bmArray.forEach((beatmaps)=>{
+                if(beatmaps == 'error') {return;}
                 const status = beatmaps[0].approvalStatus;
                 const mapsetid = beatmaps[0].beatmapSetId;
                 const values = [null
@@ -213,6 +227,8 @@ client.on('message', async msg => {
             })
         });
         updateData(updateValArray);
+        console.log('updated');
+        msg.channel.send('is ok? check log.');
     };
 
 })
