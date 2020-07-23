@@ -201,7 +201,7 @@ client.on('message', async msg => {
         
         sheetBackup.forEach((c,i)=>{
             // if(i===0){return;};
-            stack.push(osuApi.getBeatmaps({ b: c[6] }).catch(error=>'error'));
+            stack.push(osuApi.getBeatmaps({ b: c[6] }));
         })
         let updateValArray = [];
         Promise.all(stack).then((bmArray)=> {
