@@ -228,7 +228,7 @@ client.on('message', async msg => {
                 ];
                 updateValArray.push(values);
             })
-            await updateData(updateValArray);
+            updateData(updateValArray);
             console.log('updated');
             msg.channel.send('is ok? check log.');
         });
