@@ -70,7 +70,7 @@ const updateData = async function(valueArray){
     const sheets = google.sheets({version: "v4"});
     const param = {
         spreadsheetId: Settings.SPREADSHEET_ID,
-        range: `${RANGE}A2`, 
+        range: `${RANGE}!A2`, 
         valueInputOption: "USER_ENTERED",
         auth : oAuth2Client,
         resource : {
@@ -196,7 +196,6 @@ client.on('message', async msg => {
     const updateregex = /^!update/;
     if (updateregex.test(msg.content)){
         msg.channel.send('update start');
-
         await getSheetData(RANGE); // 再更新
         const stack = [];
         
@@ -229,10 +228,10 @@ client.on('message', async msg => {
                 ];
                 updateValArray.push(values);
             })
+            await updateData(updateValArray);
+            console.log('updated');
+            msg.channel.send('is ok? check log.');
         });
-        updateData(updateValArray);
-        console.log('updated');
-        msg.channel.send('is ok? check log.');
     };
 
 })
