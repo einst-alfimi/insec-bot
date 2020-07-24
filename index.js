@@ -195,6 +195,11 @@ client.on('message', async msg => {
     };
     const updateregex = /^!update/;
     if (updateregex.test(msg.content)){
+        // todo 権限強いユーザだけ実行出来るようにする
+        // if(...){
+        //     msg.channel.send('update command is admin only');
+        //     return;
+        // }
         msg.channel.send('update start');
         await getSheetData(RANGE); // 再更新
         const stack = [];
@@ -214,13 +219,8 @@ client.on('message', async msg => {
                 const status = beatmaps[0].approvalStatus;
                 const mapsetid = beatmaps[0].beatmapSetId;
                 const ddurl = `https://osu.ppy.sh/d/${mapsetid}`;
-                const values = [null
-                    , null
-                    , null
-                    , null
-                    , null
-                    , null
-                    , null
+                // NOTE 更新箇所は適宜変更
+                const values = [null, null, null, null, null, null, null
                     , mapsetid
                     , status
                     , `=HYPERLINK("${ddurl}","DOWNLOAD")`
